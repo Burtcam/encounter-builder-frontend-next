@@ -1,4 +1,7 @@
 // XP budgets based on party level and encounter intensity
+
+import { error } from "console";
+
 // These values are based on Pathfinder 2e encounter building rules
 const xpBudgets: Record<string, number[]> = {
   // [trivial, low, moderate, severe, extreme]
@@ -24,21 +27,57 @@ const xpBudgets: Record<string, number[]> = {
   "20": [520, 550, 600, 900, 1200],
 }
 
-export function calculateXpBudget(partyLevel: number, intensity: string): number {
-  const intensityIndex =
-    {
-      trivial: 0,
-      low: 1,
-      moderate: 2,
-      severe: 3,
-      extreme: 4,
-    }[intensity.toLowerCase()] || 2 // Default to moderate if invalid intensity
+// export function calculateXpBudget(partyLevel: number, intensity: string): number {
+//   const intensityIndex =
+//     {
+//       trivial: 0,
+//       low: 1,
+//       moderate: 2,
+//       severe: 3,
+//       extreme: 4,
+//     }[intensity.toLowerCase()] || 2 // Default to moderate if invalid intensity
 
-  // Default to level 1 if invalid level
-  const levelKey = partyLevel >= 1 && partyLevel <= 20 ? partyLevel.toString() : "1"
+//   // Default to level 1 if invalid level
+//   const levelKey = partyLevel >= 1 && partyLevel <= 20 ? partyLevel.toString() : "1"
 
-  return xpBudgets[levelKey][intensityIndex]
-}
+//   return xpBudgets[levelKey][intensityIndex]
+// 
+// Assumes to lower case was run ahead of time
+export function calculateXpBudget(partyLevel: number, intensity: string, partySize: number): number {
+  const intensitylower = intensity.toLowerCase()
+  const difficultyMap = new Map<string, number>([
+    ["trivial", 40],
+    ["low", 60],
+    ["moderate", 80], 
+    ["severe", 120], 
+    ["extreme", 160]
+  ]);
+  const levelAdjustmentMap = new Map<string, number>([
+    ["trivial", 10],
+    ["low", 20],
+    ["moderate", 20], 
+    ["severe", 30], 
+    ["extreme", 40]
+  ]);
+  const base = difficultyMap.get(intensitylower)
+  const adjustment = levelAdjustmentMap.get(intensitylower)
+  if (base === undefined || adjustment === undefined) {
+    return 0
+  }
+  if (difficultyMap.has(intensitylower)) {
+      if (partySize === 4) {
+        return base
+      }
+      if (partySize > 4) {
+          return base + (adjustment * (partySize - 4));
+        }
+      if (partySize < 4 ) {
+        return base - (adjustment * (4- partySize))
+      }
+    }
+    return 0
+  }
+
 
 // Calculate XP value for a monster based on its level relative to party level
 export function calculateMonsterXp(monsterLevel: number, partyLevel: number): number {

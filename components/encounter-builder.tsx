@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function EncounterBuilder() {
   const [partyLevel, setPartyLevel] = useState<number>(1)
+  const [partySize, setPartySize] = useState<number>(1)
   const [encounterIntensity, setEncounterIntensity] = useState<string>("moderate")
   const [xpBudget, setXpBudget] = useState<number>(0)
   const [xpSpent, setXpSpent] = useState<number>(0)
@@ -27,8 +28,8 @@ export function EncounterBuilder() {
   }, [])
 
   useEffect(() => {
-    setXpBudget(calculateXpBudget(partyLevel, encounterIntensity))
-  }, [partyLevel, encounterIntensity])
+    setXpBudget(calculateXpBudget(partyLevel, encounterIntensity, partySize))
+  }, [partyLevel, encounterIntensity, partySize])
 
   useEffect(() => {
     const total = selectedMonsters.reduce((sum, monster) => sum + monster.xp, 0)
@@ -49,8 +50,10 @@ export function EncounterBuilder() {
         <CardContent className="pt-6">
           <PartyConfigForm
             partyLevel={partyLevel}
+            partySize={partySize}
             encounterIntensity={encounterIntensity}
             onPartyLevelChange={setPartyLevel}
+            onPartySizeChange={setPartySize}
             onEncounterIntensityChange={setEncounterIntensity}
           />
         </CardContent>

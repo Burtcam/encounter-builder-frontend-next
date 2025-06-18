@@ -6,15 +6,19 @@ import { Badge } from "@/components/ui/badge"
 
 interface PartyConfigFormProps {
   partyLevel: number
+  partySize: number
   encounterIntensity: string
   onPartyLevelChange: (level: number) => void
+  onPartySizeChange: (level: number) => void
   onEncounterIntensityChange: (intensity: string) => void
 }
 
 export function PartyConfigForm({
   partyLevel,
+  partySize,
   encounterIntensity,
   onPartyLevelChange,
+  onPartySizeChange,
   onEncounterIntensityChange,
 }: PartyConfigFormProps) {
   return (
@@ -33,6 +37,30 @@ export function PartyConfigForm({
           step={1}
           value={[partyLevel]}
           onValueChange={(value) => onPartyLevelChange(value[0])}
+          className="py-4"
+        />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>1</span>
+          <span>5</span>
+          <span>10</span>
+          <span>15</span>
+          <span>20</span>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label htmlFor="party-size">Party Size</Label>
+          <Badge variant="outline" className="text-lg font-bold">
+            {partySize}
+          </Badge>
+        </div>
+        <Slider
+          id="party-size"
+          min={2}
+          max={20}
+          step={1}
+          value={[partySize]}
+          onValueChange={(value) => onPartySizeChange(value[0])}
           className="py-4"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
