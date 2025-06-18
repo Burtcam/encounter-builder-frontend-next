@@ -84,7 +84,7 @@ export function calculateMonsterXp(monsterLevel: number, partyLevel: number): nu
   const levelDifference = monsterLevel - partyLevel
 
   // XP values based on level difference
-  const xpValues: Record<number, number> = {
+  const xpValues: Record<string, number> = {
     "-4": 10,
     "-3": 15,
     "-2": 20,
@@ -96,8 +96,18 @@ export function calculateMonsterXp(monsterLevel: number, partyLevel: number): nu
     "4": 160,
   }
 
-  // Clamp level difference to the range we have values for
-  const clampedDifference = Math.max(-4, Math.min(4, levelDifference))
+ // Clamp level difference to the range we have values for
+ // if in the range, return it. 
+ if (monsterLevel - partyLevel >= -4 && monsterLevel - partyLevel <= 4) {
+   return xpValues[(monsterLevel - partyLevel).toString()];
+ }
+ else if (monsterLevel-partyLevel < -4){
+  return 0
+ }
+ else if (monsterLevel - partyLevel){
+  return 180
+ }
 
-  return xpValues[clampedDifference.toString()] || 40 // Default to 40 if not found
+  // If not in range, return 0 or a default value
+  return 0;
 }

@@ -71,6 +71,7 @@ export function EncounterBuilder() {
             xpBudget={xpBudget}
             xpSpent={xpSpent}
             onAddMonster={handleAddMonster}
+            partyLevel={partyLevel}
           />
         </TabsContent>
         <TabsContent value="encounter">

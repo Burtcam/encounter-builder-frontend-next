@@ -8,15 +8,18 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Shield, Sword, Heart, Zap, Plus, Info } from "lucide-react"
+import { calculateMonsterXp } from "@/lib/encounter-utils"
 
 interface MonsterCardProps {
   monster: Monster
   onAddMonster: (monster: Monster) => void
   disabled?: boolean
+  partyLevel: number
 }
 
-export function MonsterCard({ monster, onAddMonster, disabled = false }: MonsterCardProps) {
+export function MonsterCard({ monster, onAddMonster, disabled = false, partyLevel }: MonsterCardProps) {
   const [open, setOpen] = useState(false)
+  monster.xp = calculateMonsterXp(monster.level, partyLevel)
 
   return (
     <Card className="overflow-hidden">

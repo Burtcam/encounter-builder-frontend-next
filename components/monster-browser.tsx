@@ -18,10 +18,11 @@ interface MonsterBrowserProps {
   isLoading: boolean
   xpBudget: number
   xpSpent: number
+  partyLevel: number
   onAddMonster: (monster: Monster) => void
 }
 
-export function MonsterBrowser({ monsters, isLoading, xpBudget, xpSpent, onAddMonster }: MonsterBrowserProps) {
+export function MonsterBrowser({ monsters, isLoading, xpBudget, xpSpent, partyLevel, onAddMonster }: MonsterBrowserProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [filteredMonsters, setFilteredMonsters] = useState<Monster[]>([])
   const [selectedLevel, setSelectedLevel] = useState<string>("all")
@@ -155,6 +156,7 @@ export function MonsterBrowser({ monsters, isLoading, xpBudget, xpSpent, onAddMo
                     monster={monster}
                     onAddMonster={onAddMonster}
                     disabled={xpSpent + monster.xp > xpBudget}
+                    partyLevel={partyLevel}
                   />
                 ))}
               </div>
