@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
@@ -12,4 +6,380 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model attack_damage_blocks {
+  id              Int              @id @default(autoincrement())
+  attack_id       Int?
+  damage_roll     String?          @db.VarChar(50)
+  damage_type     String?          @db.VarChar(50)
+  monster_attacks monster_attacks? @relation(fields: [attack_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model focus_spell_casting {
+  id                         Int                          @id @default(autoincrement())
+  monster_id                 Int?
+  dc                         Int?
+  mod                        String?                      @db.VarChar(50)
+  tradition                  String?                      @db.VarChar(50)
+  spellcasting_id            String?                      @db.VarChar(50)
+  name                       String?                      @db.VarChar(100)
+  description                String?
+  cast_level                 String?                      @db.VarChar(50)
+  monsters                   monsters?                    @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  focus_spell_casting_spells focus_spell_casting_spells[]
+}
+
+model focus_spell_casting_spells {
+  id                     Int                  @id @default(autoincrement())
+  focus_spell_casting_id Int?
+  spell_id               String?              @db.VarChar(50)
+  focus_spell_casting    focus_spell_casting? @relation(fields: [focus_spell_casting_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  spells                 spells?              @relation(fields: [spell_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model innate_spell_casting {
+  id                Int                 @id @default(autoincrement())
+  monster_id        Int?
+  dc                Int?
+  tradition         String?             @db.VarChar(50)
+  mod               String?             @db.VarChar(50)
+  spellcasting_id   String?             @db.VarChar(50)
+  description       String?
+  name              String?             @db.VarChar(100)
+  monsters          monsters?           @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  innate_spell_uses innate_spell_uses[]
+}
+
+model innate_spell_uses {
+  id                      Int                   @id @default(autoincrement())
+  innate_spell_casting_id Int?
+  spell_id                String?               @db.VarChar(50)
+  level                   Int?
+  uses                    String?               @db.VarChar(50)
+  innate_spell_casting    innate_spell_casting? @relation(fields: [innate_spell_casting_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  spells                  spells?               @relation(fields: [spell_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model item_traits {
+  id      Int     @id @default(autoincrement())
+  item_id String? @db.VarChar(50)
+  trait   String? @db.VarChar(50)
+  items   items?  @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model items {
+  id          String        @id @db.VarChar(50)
+  monster_id  Int?
+  name        String?       @db.VarChar(100)
+  category    String?       @db.VarChar(50)
+  description String?
+  level       String?       @db.VarChar(50)
+  type        String?       @db.VarChar(50)
+  rarity      String?       @db.VarChar(50)
+  size        String?       @db.VarChar(50)
+  range       String?       @db.VarChar(50)
+  reload      String?       @db.VarChar(50)
+  bulk        String?       @db.VarChar(50)
+  quantity    String?       @db.VarChar(50)
+  price_per   Int?
+  price_cp    Int?
+  price_sp    Int?
+  price_gp    Int?
+  price_pp    Int?
+  item_traits item_traits[]
+  monsters    monsters?     @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+enum MonsterActionType {
+  action
+  free_action
+  reaction
+  passive
+}
+
+model monster_action_traits {
+  id                Int              @id @default(autoincrement())
+  monster_action_id Int?
+  trait             String?          @db.VarChar(50)
+  monster_actions   monster_actions? @relation(fields: [monster_action_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model monster_actions {
+  id                    Int                     @id @default(autoincrement())
+  monster_id            Int?
+  action_type           MonsterActionType       
+  name                  String?                 @db.VarChar(250)
+  text                  String?
+  actions               String?                 @db.VarChar(100)
+  category              String?                 @db.VarChar(50)
+  rarity                String?                 @db.VarChar(50)
+  dc                    String?                 @db.VarChar(50)
+  monster_action_traits monster_action_traits[]
+  monsters              monsters?               @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+enum MonsterAttackCategory{
+  melee
+  ranged
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model monster_attacks {
+  id                    Int                    @id @default(autoincrement())
+  monster_id            Int?
+  attack_category       MonsterAttackCategory?              
+  name                  String?                @db.VarChar(100)
+  attack_type           String?                @db.VarChar(50)
+  to_hit_bonus          String?                @db.VarChar(50)
+  effects_custom_string String?
+  effects_values        String[]
+  attack_damage_blocks  attack_damage_blocks[]
+  monsters              monsters?              @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+enum MonsterDamageModifierType {
+  weakness
+  resistance
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model monster_damage_modifiers {
+  id                          Int                           @id @default(autoincrement())
+  monster_id                  Int?
+  modifier_category           MonsterDamageModifierType?    
+  value                       Int?
+  damage_type                 String?                       @db.VarChar(50)
+  monsters                    monsters?                     @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  monster_modifier_doubles    monster_modifier_doubles[]
+  monster_modifier_exceptions monster_modifier_exceptions[]
+}
+
+model monster_immunities {
+  id         Int       @id @default(autoincrement())
+  monster_id Int?
+  immunity   String?   @db.VarChar(100)
+  monsters   monsters? @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_languages {
+  id         Int       @id @default(autoincrement())
+  monster_id Int?
+  language   String?   @db.VarChar(50)
+  monsters   monsters? @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_modifier_doubles {
+  id                       Int                       @id @default(autoincrement())
+  modifier_id              Int?
+  double_value             String?                   @db.VarChar(100)
+  monster_damage_modifiers monster_damage_modifiers? @relation(fields: [modifier_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_modifier_exceptions {
+  id                       Int                       @id @default(autoincrement())
+  modifier_id              Int?
+  exception                String?                   @db.VarChar(100)
+  monster_damage_modifiers monster_damage_modifiers? @relation(fields: [modifier_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_movements {
+  id            Int       @id @default(autoincrement())
+  monster_id    Int?
+  movement_type String?   @db.VarChar(50)
+  speed         String?   @db.VarChar(50)
+  notes         String?
+  monsters      monsters? @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_senses {
+  id         Int       @id @default(autoincrement())
+  monster_id Int?
+  name       String?   @db.VarChar(50)
+  range      String?   @db.VarChar(50)
+  acuity     String?   @db.VarChar(50)
+  detail     String?
+  monsters   monsters? @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_skill_specials {
+  id             Int             @id @default(autoincrement())
+  skill_id       Int?
+  value          Int?
+  label          String?         @db.VarChar(100)
+  predicates     String[]
+  monster_skills monster_skills? @relation(fields: [skill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_skills {
+  id                     Int                      @id @default(autoincrement())
+  monster_id             Int?
+  name                   String?                  @db.VarChar(100)
+  value                  Int?
+  monster_skill_specials monster_skill_specials[]
+  monsters               monsters?                @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monster_traits {
+  id         Int       @id @default(autoincrement())
+  monster_id Int?
+  trait      String?   @db.VarChar(50)
+  monsters   monsters? @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model monsters {
+  id                        Int                         @id @default(autoincrement())
+  name                      String                      @db.VarChar(255)
+  level                     String?                     @db.VarChar(50)
+  focus_points              Int?
+  traits_rarity             String?                     @db.VarChar(50)
+  traits_size               String?                     @db.VarChar(50)
+  attr_str                  String?                     @db.VarChar(10)
+  attr_dex                  String?                     @db.VarChar(10)
+  attr_con                  String?                     @db.VarChar(10)
+  attr_wis                  String?                     @db.VarChar(10)
+  attr_int                  String?                     @db.VarChar(10)
+  attr_cha                  String?                     @db.VarChar(10)
+  saves_fort                String?                     @db.VarChar(20)
+  saves_fort_detail         String?
+  saves_ref                 String?                     @db.VarChar(20)
+  saves_ref_detail          String?
+  saves_will                String?                     @db.VarChar(20)
+  saves_will_detail         String?
+  saves_exception           String?
+  ac_value                  String?                     @db.VarChar(50)
+  ac_detail                 String?
+  hp_detail                 String?
+  hp_value                  Int?
+  perception_mod            String?                     @db.VarChar(50)
+  perception_detail         String?
+  focus_spell_casting       focus_spell_casting[]
+  innate_spell_casting      innate_spell_casting[]
+  items                     items[]
+  monster_actions           monster_actions[]
+  monster_attacks           monster_attacks[]
+  monster_damage_modifiers  monster_damage_modifiers[]
+  monster_immunities        monster_immunities[]
+  monster_languages         monster_languages[]
+  monster_movements         monster_movements[]
+  monster_senses            monster_senses[]
+  monster_skills            monster_skills[]
+  monster_traits            monster_traits[]
+  prepared_spell_casting    prepared_spell_casting[]
+  spontaneous_spell_casting spontaneous_spell_casting[]
+}
+
+model prepared_slots {
+  id                        Int                     @id @default(autoincrement())
+  prepared_spell_casting_id Int?
+  level                     String?                 @db.VarChar(50)
+  spell_id                  String?                 @db.VarChar(50)
+  prepared_spell_casting    prepared_spell_casting? @relation(fields: [prepared_spell_casting_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  spells                    spells?                 @relation(fields: [spell_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model prepared_spell_casting {
+  id              Int              @id @default(autoincrement())
+  monster_id      Int?
+  dc              Int?
+  tradition       String?          @db.VarChar(50)
+  mod             String?          @db.VarChar(50)
+  spellcasting_id String?          @db.VarChar(50)
+  description     String?
+  prepared_slots  prepared_slots[]
+  monsters        monsters?        @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model ritual_data {
+  id                Int     @id @default(autoincrement())
+  spell_id          String? @db.VarChar(50)
+  primary_check     String? @db.VarChar(50)
+  secondary_casters String? @db.VarChar(50)
+  secondary_check   String? @db.VarChar(50)
+  spells            spells? @relation(fields: [spell_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model spell_areas {
+  id        Int     @id @default(autoincrement())
+  spell_id  String? @db.VarChar(50)
+  area_type String? @db.VarChar(50)
+  value     String? @db.VarChar(50)
+  detail    String?
+  spells    spells? @relation(fields: [spell_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model spell_defenses {
+  id       Int      @id @default(autoincrement())
+  spell_id String?  @db.VarChar(50)
+  save     String?  @db.VarChar(50)
+  basic    Boolean?
+  spells   spells?  @relation(fields: [spell_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model spell_durations {
+  id        Int      @id @default(autoincrement())
+  spell_id  String?  @db.VarChar(50)
+  sustained Boolean?
+  duration  String?  @db.VarChar(50)
+  spells    spells?  @relation(fields: [spell_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model spell_traits {
+  id       Int     @id @default(autoincrement())
+  spell_id String? @db.VarChar(50)
+  trait    String? @db.VarChar(50)
+  spells   spells? @relation(fields: [spell_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model spells {
+  id                              String                       @id @db.VarChar(50)
+  name                            String?                      @db.VarChar(100)
+  cast_level                      String?                      @db.VarChar(50)
+  spell_base_level                String?                      @db.VarChar(50)
+  description                     String?
+  range                           String?                      @db.VarChar(100)
+  cast_time                       String?                      @db.VarChar(50)
+  cast_requirements               String?
+  rarity                          String?                      @db.VarChar(50)
+  at_will                         Boolean?
+  spell_casting_block_location_id String?                      @db.VarChar(50)
+  uses                            String?                      @db.VarChar(50)
+  ritual                          Boolean?
+  targets                         String?
+  focus_spell_casting_spells      focus_spell_casting_spells[]
+  innate_spell_uses               innate_spell_uses[]
+  prepared_slots                  prepared_slots[]
+  ritual_data                     ritual_data[]
+  spell_areas                     spell_areas[]
+  spell_defenses                  spell_defenses[]
+  spell_durations                 spell_durations[]
+  spell_traits                    spell_traits[]
+  spontaneous_spell_list          spontaneous_spell_list[]
+}
+
+model spontaneous_slots {
+  id                           Int                        @id @default(autoincrement())
+  spontaneous_spell_casting_id Int?
+  level                        String?                    @db.VarChar(50)
+  casts                        String?                    @db.VarChar(50)
+  spontaneous_spell_casting    spontaneous_spell_casting? @relation(fields: [spontaneous_spell_casting_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model spontaneous_spell_casting {
+  id                     Int                      @id @default(autoincrement())
+  monster_id             Int?
+  dc                     Int?
+  id_string              String?                  @db.VarChar(50)
+  tradition              String?                  @db.VarChar(50)
+  mod                    String?                  @db.VarChar(50)
+  spontaneous_slots      spontaneous_slots[]
+  monsters               monsters?                @relation(fields: [monster_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  spontaneous_spell_list spontaneous_spell_list[]
+}
+
+model spontaneous_spell_list {
+  id                           Int                        @id @default(autoincrement())
+  spontaneous_spell_casting_id Int?
+  spell_id                     String?                    @db.VarChar(50)
+  spells                       spells?                    @relation(fields: [spell_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  spontaneous_spell_casting    spontaneous_spell_casting? @relation(fields: [spontaneous_spell_casting_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
